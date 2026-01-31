@@ -88,6 +88,10 @@ export const learningApi = {
     const response = await api.post('/learning/start-practice');
     return response.data;
   },
+  startAdvancedPractice: async () => {
+    const response = await api.post('/learning/start-advanced');
+    return response.data;
+  },
   startApplication: async () => {
     const response = await api.post('/learning/start-application');
     return response.data;
@@ -104,6 +108,79 @@ export const learningApi = {
     const response = await api.post(`/learning/session/${sessionId}/complete`);
     return response.data;
   },
+  getGameFeedback: async (gameResults: Array<{
+    exerciseIndex: number;
+    exerciseType: string;
+    questionIndex: number;
+    questionContent: string;
+    selectedOption: string;
+    correctOption: string;
+    isCorrect: boolean;
+    timeSpent: number;
+    earnedPoints: number;
+    errorType?: string;
+    errorDescription?: string;
+  }>) => {
+    const response = await api.post('/learning/game-feedback', { gameResults });
+    return response.data;
+  },
+};
+
+// Categories API (Menu System)
+export interface Category {
+  id: string;
+  parentId: string | null;
+  level: number;
+  name: string;
+  sortOrder: number;
+  isActive: boolean;
+  children?: Category[];
+}
+
+export interface Topic {
+  id: string;
+  categoryId: string;
+  name: string;
+  isGameSupported: boolean;
+  sortOrder: number;
+  isActive: boolean;
+}
+
+export const categoriesApi = {
+  getMenuTree: async (): Promise<Category[]> => {
+    const response = await api.get('/categories');
+    return response.data;
+  },
+  getChildren: async (categoryId: string): Promise<Category[]> => {
+    const response = await api.get(`/categories/${categoryId}/children`);
+    return response.data;
+  },
+  getTopics: async (categoryId: string): Promise<Topic[]> => {
+    const response = await api.get(`/categories/${categoryId}/topics`);
+    return response.data;
+  },
+};
+
+// Leaderboard API
+export interface LeaderboardEntry {
+  rank: number;
+  userId: string;
+  userName: string;
+  score: number;
+  timeMs: number;
+  accuracy: number;
+}
+
+export const leaderboardApi = {
+  getLeaderboard: async (topicId: string): Promise<LeaderboardEntry[]> => {
+    const response = await api.get(`/leaderboard/${topicId}`);
+    return response.data;
+  },
+  getMyRank: async (topicId: string): Promise<{ rank: number | null; bestScore: number; bestTime: number }> => {
+    const response = await api.get(`/leaderboard/${topicId}/my-rank`);
+    return response.data;
+  },
 };
 
 export default api;
+

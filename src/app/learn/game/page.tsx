@@ -1,55 +1,69 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, startTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Trophy, Clock, Star } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { QuizGame } from '@/components/game/QuizGame';
+import { GameResult } from '@/components/game/GameResult';
 import { ChatInterface } from '@/components/practice/ChatInterface';
 import { useGameStore } from '@/store/game';
 import Link from 'next/link';
 
-type Phase = 'warmup' | 'warmup-result' | 'practice-basic' | 'practice-advanced' | 'application' | 'completed';
+// Updated phases to match the new flow:
+// game → game-result → practice (basic + advanced) → application → completed
+type Phase = 'game' | 'game-result' | 'practice' | 'application' | 'completed';
 
 const PHASE_STORAGE_KEY = 'learn-game-phase';
 
 export default function GamePage() {
   const router = useRouter();
-  const [phase, setPhase] = useState<Phase>('warmup');
-  const [isHydrated, setIsHydrated] = useState(false);
   const { totalScore, resetGame } = useGameStore();
+  const hasMounted = useRef(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  // Restore phase from localStorage after hydration (client-side only)
+  // Always initialize as 'game' to avoid hydration mismatch
+  // Then sync with localStorage after first render
+  const [phase, setPhase] = useState<Phase>('game');
+
+  // Hydrate phase from localStorage after mount
+  // Using startTransition to avoid cascading render warning
   useEffect(() => {
     const savedPhase = localStorage.getItem(PHASE_STORAGE_KEY) as Phase | null;
-    if (savedPhase && ['warmup', 'warmup-result', 'practice-basic', 'practice-advanced', 'application', 'completed'].includes(savedPhase)) {
-      setPhase(savedPhase);
+    if (
+      savedPhase &&
+      ['game', 'game-result', 'practice', 'application', 'completed'].includes(
+        savedPhase,
+      )
+    ) {
+      // Wrap in startTransition to avoid cascading render warning
+      startTransition(() => setPhase(savedPhase as Phase));
     }
-    setIsHydrated(true);
+    startTransition(() => setIsHydrated(true));
   }, []);
 
-  // Save phase to localStorage when it changes (only after hydration)
+  // Save phase to localStorage when it changes (skip initial render)
   useEffect(() => {
-    if (isHydrated) {
+    if (isHydrated && hasMounted.current) {
       localStorage.setItem(PHASE_STORAGE_KEY, phase);
+    } else {
+      hasMounted.current = true;
     }
   }, [phase, isHydrated]);
 
-  const handleWarmupComplete = () => {
-    setPhase('warmup-result');
+  const handleGameComplete = () => {
+    setPhase('game-result');
   };
 
   const handleStartPractice = () => {
-    setPhase('practice-basic');
+    setPhase('practice');
   };
 
-  const handlePracticeBasicComplete = () => {
-    setPhase('practice-advanced');
-  };
-
-  const handlePracticeAdvancedComplete = () => {
+  // Practice complete → move to Application (Vận dụng)
+  const handlePracticeComplete = () => {
     setPhase('application');
   };
 
+  // Application complete → Final completed
   const handleApplicationComplete = () => {
     setPhase('completed');
   };
@@ -57,7 +71,11 @@ export default function GamePage() {
   const handlePlayAgain = () => {
     resetGame();
     localStorage.removeItem(PHASE_STORAGE_KEY);
-    setPhase('warmup');
+    // Clear all session storage
+    localStorage.removeItem('practice_session');
+    localStorage.removeItem('advanced_practice_session');
+    localStorage.removeItem('application_session');
+    setPhase('game');
   };
 
   return (
@@ -75,70 +93,39 @@ export default function GamePage() {
             <h1 className="font-bold text-gray-800">Phép nhân số thập phân</h1>
             <p className="text-sm text-gray-500">Lớp 5 - Số và Phép tính</p>
           </div>
+          {/* Progress indicator */}
+          <div className="ml-auto flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <div className={`w-3 h-3 rounded-full ${phase === 'game' || phase === 'game-result' ? 'bg-blue-500' : 'bg-green-500'}`} title="Khởi động" />
+              <div className={`w-3 h-3 rounded-full ${phase === 'practice' ? 'bg-blue-500' : phase === 'application' || phase === 'completed' ? 'bg-green-500' : 'bg-gray-300'}`} title="Luyện tập" />
+              <div className={`w-3 h-3 rounded-full ${phase === 'application' ? 'bg-blue-500' : phase === 'completed' ? 'bg-green-500' : 'bg-gray-300'}`} title="Vận dụng" />
+            </div>
+          </div>
         </div>
       </header>
 
-      {/* Phase: Warm-up Game */}
-      {phase === 'warmup' && (
+      {/* Phase: Game (Khởi động - 3 exercises) */}
+      {phase === 'game' && (
         <div className="py-6">
-          <QuizGame onComplete={handleWarmupComplete} />
+          <QuizGame onComplete={handleGameComplete} />
         </div>
       )}
 
-      {/* Phase: Warm-up Result */}
-      {phase === 'warmup-result' && (
-        <div className="max-w-2xl mx-auto py-12 px-4">
-          <div className="bg-white rounded-3xl shadow-xl p-8 text-center">
-            <div className="w-20 h-20 rounded-full bg-linear-to-br from-yellow-400 to-orange-500 flex items-center justify-center mx-auto mb-6">
-              <Trophy className="w-10 h-10 text-white" />
-            </div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">Xuất sắc! 🎉</h2>
-            <p className="text-gray-600 mb-6">Bạn đã hoàn thành phần Khởi động</p>
-            
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              <div className="bg-blue-50 rounded-xl p-4">
-                <Star className="w-6 h-6 text-blue-500 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-gray-800">{totalScore}</div>
-                <div className="text-sm text-gray-500">Tổng điểm</div>
-              </div>
-              <div className="bg-green-50 rounded-xl p-4">
-                <Clock className="w-6 h-6 text-green-500 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-gray-800">3</div>
-                <div className="text-sm text-gray-500">Bài hoàn thành</div>
-              </div>
-            </div>
-
-            <div className="bg-purple-50 rounded-xl p-4 mb-6">
-              <p className="text-purple-700">
-                🤖 Trợ lí AI đã phân tích kết quả của bạn và sẵn sàng giúp bạn luyện tập những phần còn chưa chắc!
-              </p>
-            </div>
-
-            <button
-              onClick={handleStartPractice}
-              className="w-full py-4 bg-linear-to-r from-purple-500 to-pink-500 text-white rounded-xl font-bold text-lg hover:from-purple-600 hover:to-pink-600 transition-all"
-            >
-              Luyện tập cùng Trợ lí AI →
-            </button>
-          </div>
+      {/* Phase: Game Result with AI Feedback */}
+      {phase === 'game-result' && (
+        <div className="py-6">
+          <GameResult onStartPractice={handleStartPractice} />
         </div>
       )}
 
-      {/* Phase: Practice Basic (Phase 2) */}
-      {phase === 'practice-basic' && (
+      {/* Phase: Practice (LUYỆN TẬP - SỬA LỖI) contains both Basic + Advanced */}
+      {phase === 'practice' && (
         <div className="py-6 px-4">
-          <ChatInterface phase={2} onComplete={handlePracticeBasicComplete} />
+          <ChatInterface phase={2} onComplete={handlePracticeComplete} />
         </div>
       )}
 
-      {/* Phase: Practice Advanced (still Phase 2) */}
-      {phase === 'practice-advanced' && (
-        <div className="py-6 px-4">
-          <ChatInterface phase={2} onComplete={handlePracticeAdvancedComplete} />
-        </div>
-      )}
-
-      {/* Phase: Application (Phase 3) */}
+      {/* Phase: Application (VẬN DỤNG) */}
       {phase === 'application' && (
         <div className="py-6 px-4">
           <ChatInterface phase={3} onComplete={handleApplicationComplete} />
@@ -152,15 +139,16 @@ export default function GamePage() {
             <div className="text-6xl mb-6">🏆</div>
             <h2 className="text-3xl font-bold text-gray-800 mb-2">Tuyệt vời!</h2>
             <p className="text-gray-600 mb-6">
-              Bạn đã hoàn thành cả 3 lộ trình học tập!
+              Bạn đã hoàn thành tất cả các phần học tập!
             </p>
             
             <div className="bg-linear-to-r from-green-50 to-emerald-50 rounded-xl p-6 mb-6">
               <h3 className="font-bold text-green-800 mb-2">🎯 Bạn đã đạt được:</h3>
               <ul className="text-left text-green-700 space-y-2">
-                <li>✅ Hoàn thành phần Khởi động với {totalScore} điểm</li>
-                <li>✅ Luyện tập sửa lỗi cùng Trợ lí AI</li>
-                <li>✅ Vận dụng kiến thức vào bài toán thực tiễn</li>
+                <li>✅ Hoàn thành Khởi động với {totalScore} điểm</li>
+                <li>✅ Luyện tập cơ bản, củng cố</li>
+                <li>✅ Luyện tập nâng cao, mở rộng</li>
+                <li>✅ Vận dụng thực tiễn</li>
               </ul>
             </div>
 

@@ -16,8 +16,11 @@ const AIRobot = dynamic(() => import('@/components/3d/AIRobot'), {
   ),
 });
 
+// Sub-phase within practice: 'basic' or 'advanced'
+type PracticeSubPhase = 'basic' | 'advanced';
+
 interface ChatInterfaceProps {
-  phase: 2 | 3;
+  phase: 2 | 3; // 2 = Practice (LUYỆN TẬP), 3 = Application (VẬN DỤNG)  
   onComplete: () => void;
 }
 
@@ -27,6 +30,7 @@ export function ChatInterface({ phase, onComplete }: ChatInterfaceProps) {
     isLoading,
     exercise,
     startPractice,
+    startAdvancedPractice,
     startApplication,
     sendMessage,
     completeSession,
@@ -36,11 +40,15 @@ export function ChatInterface({ phase, onComplete }: ChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isInitializedRef = useRef(false);
+  
+  // Track sub-phase for practice (phase=2)
+  const [practiceSubPhase, setPracticeSubPhase] = useState<PracticeSubPhase>('basic');
 
   useEffect(() => {
     if (!isInitializedRef.current) {
       isInitializedRef.current = true;
       if (phase === 2) {
+        // Start with basic practice
         startPractice();
       } else {
         startApplication();
@@ -132,33 +140,107 @@ export function ChatInterface({ phase, onComplete }: ChatInterfaceProps) {
     }
   };
 
+  // Handle moving to advanced practice (within same page)
+  const handleMoveToAdvanced = async () => {
+    await completeSession();
+    // Clear localStorage for basic session
+    localStorage.removeItem('practice_session');
+    // Reset initialization flag to allow new session
+    isInitializedRef.current = false;
+    setPracticeSubPhase('advanced');
+    // Start advanced practice
+    startAdvancedPractice();
+    isInitializedRef.current = true;
+  };
+
+  // Handle final completion (move to next phase)
   const handleComplete = async () => {
     await completeSession();
+    // Clear storage for both session types
+    localStorage.removeItem('practice_session');
+    localStorage.removeItem('advanced_practice_session');
+    localStorage.removeItem('application_session');
     onComplete();
   };
 
   const lastMessage = messages[messages.length - 1];
   
-  // Only show completion if promptType is FEEDBACK AND we detect completion keywords
-  // This prevents the button from showing up just because we are in the feedback loop
+  // Check if current sub-phase scaffolding is complete
   const isScaffoldingComplete = useMemo(() => {
-    if (phase === 3) return false; // Application phase handles completion differently
-    if (lastMessage?.promptType !== 'FEEDBACK') return false;
+    // Only check AI messages
+    if (!lastMessage || lastMessage.role !== 'AI') return false;
     
     const content = lastMessage.content.toLowerCase();
+    
+    // EXCLUDE: Messages that introduce new problems (phase transition messages)
+    if (content.includes('bài toán:') || content.includes('**bài toán:**')) {
+      return false;
+    }
+    
+    // DEBUG: Log evaluation field to trace issues
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const evaluation = (lastMessage as any).evaluation;
+    console.log('[ChatInterface] Last message evaluation:', evaluation, '| Content preview:', content.substring(0, 50));
+    
+    // Primary check: AI explicitly marked as complete
+    if (evaluation === 'complete') {
+      console.log('[ChatInterface] ✅ Detected complete via evaluation field');
+      return true;
+    }
+    
+    // Fallback: Check AI message content for completion keywords
     const completionKeywords = [
-      'hoàn thành', 'chúc mừng', 'tuyệt vời', 'xuất sắc', 'chính xác', 
-      'sang phần tiếp theo', 'qua phần tiếp', 'bài toán kết thúc',
-      'đã xong', 'giỏi lắm'
+      'đúng rồi! 🎉', 'bạn làm đúng rồi', 'bạn làm rất tốt',
+      'nhấn nút bên dưới', 'nhấn tiếp tục', 'nhấn luyện tập nâng cao',
+      'bài toán kết thúc', 'đã xong'
     ];
-    // Also check that it DOESN'T contain negative feedback (double safety)
-    const negativeKeywords = ['chưa đúng', 'sai rồi', 'thử lại', 'xem lại', 'nhầm lẫn'];
+    const negativeKeywords = ['chưa đúng', 'sai rồi', 'thử lại', 'xem lại', 'nhầm lẫn', 'chưa chính xác', 'mình hỏi bạn nhé'];
     
     const hasCompletion = completionKeywords.some(kw => content.includes(kw));
     const hasNegative = negativeKeywords.some(kw => content.includes(kw));
     
-    return hasCompletion && !hasNegative;
-  }, [lastMessage, phase]);
+    if (hasCompletion && !hasNegative) {
+      console.log('[ChatInterface] ✅ Detected complete via fallback keywords');
+      return true;
+    }
+    
+    return false;
+  }, [lastMessage]);
+
+  // Get title based on phase and sub-phase
+  const getTitle = () => {
+    if (phase === 3) {
+      return '🎯 Vận dụng';
+    }
+    // Phase 2: Practice with sub-phases
+    if (practiceSubPhase === 'basic') {
+      return '💪 Luyện tập cơ bản, củng cố';
+    }
+    return '🚀 Luyện tập nâng cao, mở rộng';
+  };
+
+  // Get completion button config
+  const getCompletionConfig = () => {
+    if (phase === 3) {
+      return {
+        text: 'Hoàn thành bài học! 🎉',
+        action: handleComplete,
+      };
+    }
+    // Phase 2
+    if (practiceSubPhase === 'basic') {
+      return {
+        text: 'Tiếp tục với Luyện tập nâng cao →',
+        action: handleMoveToAdvanced,
+      };
+    }
+    return {
+      text: 'Tiếp tục với Vận dụng →',
+      action: handleComplete,
+    };
+  };
+
+  const completionConfig = getCompletionConfig();
 
   return (
     <div className="flex gap-6 h-[calc(100vh-120px)] max-w-7xl mx-auto p-4">
@@ -206,13 +288,21 @@ export function ChatInterface({ phase, onComplete }: ChatInterfaceProps) {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-bold text-lg">
-                {phase === 2 ? '💪 Luyện tập - Sửa lỗi' : '🚀 Vận dụng thực tiễn'}
+                {getTitle()}
               </h2>
               <p className="text-sm text-white/80">Trò chuyện với Trợ lí AI</p>
             </div>
-            <div className="flex items-center gap-2 bg-white/20 px-3 py-1.5 rounded-full">
-              <Sparkles className="w-4 h-4" />
-              <span className="text-sm font-medium">AI Hỗ Trợ</span>
+            <div className="flex items-center gap-2">
+              {phase === 2 && (
+                <div className="flex items-center gap-1 mr-4">
+                  <div className={`w-3 h-3 rounded-full ${practiceSubPhase === 'basic' ? 'bg-white' : 'bg-white/40'}`} />
+                  <div className={`w-3 h-3 rounded-full ${practiceSubPhase === 'advanced' ? 'bg-white' : 'bg-white/40'}`} />
+                </div>
+              )}
+              <div className="flex items-center gap-2 bg-white/20 px-3 py-1.5 rounded-full">
+                <Sparkles className="w-4 h-4" />
+                <span className="text-sm font-medium">AI Hỗ Trợ</span>
+              </div>
             </div>
           </div>
         </div>
@@ -297,10 +387,10 @@ export function ChatInterface({ phase, onComplete }: ChatInterfaceProps) {
         {isScaffoldingComplete && (
           <div className="p-4 bg-linear-to-r from-green-50 to-emerald-50 border-t border-green-200">
             <button
-              onClick={handleComplete}
+              onClick={completionConfig.action}
               className="w-full py-4 bg-linear-to-r from-green-500 to-emerald-500 text-white rounded-xl font-bold text-lg hover:from-green-600 hover:to-emerald-600 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
-              {phase === 2 ? 'Tiếp tục với Vận dụng thực tiễn →' : 'Hoàn thành bài học! 🎉'}
+              {completionConfig.text}
             </button>
           </div>
         )}

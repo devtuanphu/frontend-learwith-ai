@@ -80,7 +80,7 @@ export default function DashboardPage() {
         <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
           {/* Trò Chơi Card */}
           <button
-            onClick={() => router.push('/learn/game')}
+            onClick={() => router.push('/game')}
             className="group relative bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden text-left"
           >
             <div className="absolute top-0 right-0 w-40 h-40 bg-linear-to-br from-green-400 to-emerald-500 rounded-full blur-3xl opacity-20 group-hover:opacity-30 transition-opacity" />
@@ -88,9 +88,9 @@ export default function DashboardPage() {
               <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-green-400 to-emerald-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Gamepad2 className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">Trò Chơi</h3>
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">Trò chơi</h3>
               <p className="text-gray-600 mb-4">
-                Học toán qua các mini-game thú vị với câu hỏi trắc nghiệm và tính điểm
+                Chọn chủ đề và bắt đầu chơi game toán học thú vị
               </p>
               <div className="flex items-center text-green-600 font-medium">
                 Bắt đầu chơi

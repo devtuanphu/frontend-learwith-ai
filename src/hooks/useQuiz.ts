@@ -18,6 +18,7 @@ interface Question {
     isCorrect: boolean;
     errorType?: string;
     errorDescription?: string;
+    feedback?: string;
   }[];
 }
 
@@ -39,12 +40,13 @@ interface UserExercise {
   status: string;
 }
 
-interface HistoryMessage {
+export interface HistoryMessage {
   id: string;
   role: 'USER' | 'user' | 'AI' | 'model';
   content: string;
   promptType?: string;
   emotion?: string;
+  evaluation?: 'correct' | 'incorrect' | 'partial' | 'unclear' | 'complete';
 }
 
 interface ApiSessionResponse {
@@ -65,6 +67,7 @@ export function useQuiz() {
     answers,
     selectOption,
     addScore,
+    addGameResult,
     nextQuestion,
     nextExercise,
     setExercises,
@@ -81,8 +84,18 @@ export function useQuiz() {
     setError(null);
     try {
       const exercises = await progressApi.startWarmUp();
-      setUserExercises(exercises);
-      setExercises(exercises.map((e: UserExercise) => e.id));
+      // Sort questions by orderIndex to ensure correct display order
+      const sortedExercises = exercises.map((e: UserExercise) => ({
+        ...e,
+        exercise: {
+          ...e.exercise,
+          questions: [...e.exercise.questions].sort(
+            (a, b) => (a.orderIndex || 0) - (b.orderIndex || 0)
+          ),
+        },
+      }));
+      setUserExercises(sortedExercises);
+      setExercises(sortedExercises.map((e: UserExercise) => e.id));
     } catch (err) {
       setError('Không thể bắt đầu trò chơi. Vui lòng thử lại.');
       console.error(err);
@@ -106,6 +119,25 @@ export function useQuiz() {
       
       addScore(response.earnedPoints);
       
+      // Save game result for AI feedback
+      const selectedOptions = currentQuestion.options.filter(o => selectedOptionIds.includes(o.id));
+      const correctOptions = currentQuestion.options.filter(o => o.isCorrect);
+      const wrongSelectedOption = selectedOptions.find(o => !o.isCorrect);
+      
+      addGameResult({
+        exerciseIndex: currentExerciseIndex,
+        exerciseType: currentExercise.exercise.type,
+        questionIndex: currentQuestionIndex,
+        questionContent: currentQuestion.content,
+        selectedOption: selectedOptions.map(o => o.content).join(', '),
+        correctOption: correctOptions.map(o => o.content).join(', '),
+        isCorrect: response.isCorrect,
+        timeSpent,
+        earnedPoints: response.earnedPoints,
+        errorType: wrongSelectedOption?.errorType,
+        errorDescription: wrongSelectedOption?.errorDescription,
+      });
+      
       if (isLastQuestion) {
         await progressApi.completeExercise(currentExercise.id);
         if (!isLastExercise) {
@@ -120,7 +152,7 @@ export function useQuiz() {
       console.error('Error submitting answer:', err);
       throw err;
     }
-  }, [currentExercise, currentQuestion, answers, addScore, isLastQuestion, isLastExercise, nextExercise, nextQuestion]);
+  }, [currentExercise, currentQuestion, currentExerciseIndex, currentQuestionIndex, answers, addScore, addGameResult, isLastQuestion, isLastExercise, nextExercise, nextQuestion]);
 
   const getResult = useCallback(async () => {
     if (!currentExercise) return;
@@ -215,6 +247,10 @@ export function useChat() {
     return loadSession('practice_session', learningApi.startPractice);
   }, []);
 
+  const startAdvancedPractice = useCallback(() => {
+    return loadSession('advanced_practice_session', learningApi.startAdvancedPractice);
+  }, []);
+
   const startApplication = useCallback(() => {
     return loadSession('application_session', learningApi.startApplication);
   }, []);
@@ -238,6 +274,7 @@ export function useChat() {
         content: response.aiResponse,
         promptType: response.promptType,
         emotion: response.emotion, // Now comes from Gemini evaluation
+        evaluation: response.evaluation, // Track completion status
       }]);
     } catch (err) {
       console.error('Error sending message:', err);
@@ -264,6 +301,7 @@ export function useChat() {
     isLoading,
     exercise,
     startPractice,
+    startAdvancedPractice,
     startApplication,
     sendMessage,
     completeSession,

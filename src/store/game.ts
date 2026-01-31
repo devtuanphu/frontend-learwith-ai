@@ -2,6 +2,21 @@
 
 import { create } from 'zustand';
 
+// Result of each answer for AI feedback
+export interface GameAnswerResult {
+  exerciseIndex: number;
+  exerciseType: 'BASIC' | 'APPLICATION' | 'PROBLEM_SOLVING';
+  questionIndex: number;
+  questionContent: string;
+  selectedOption: string;
+  correctOption: string;
+  isCorrect: boolean;
+  timeSpent: number;
+  earnedPoints: number;
+  errorType?: string;
+  errorDescription?: string;
+}
+
 interface GameState {
   // Current exercise tracking
   currentExerciseIndex: number;
@@ -19,6 +34,9 @@ interface GameState {
   // Answers
   answers: Record<string, string[]>; // questionId -> selectedOptionIds
   
+  // Game results for AI feedback
+  gameResults: GameAnswerResult[];
+  
   // Phase
   currentPhase: 1 | 2 | 3;
   
@@ -28,6 +46,7 @@ interface GameState {
   nextExercise: () => void;
   selectOption: (questionId: string, optionId: string, isMultiple: boolean) => void;
   addScore: (points: number) => void;
+  addGameResult: (result: GameAnswerResult) => void;
   setTimeRemaining: (time: number) => void;
   startTimer: () => void;
   stopTimer: () => void;
@@ -44,6 +63,7 @@ export const useGameStore = create<GameState>((set) => ({
   totalScore: 0,
   exerciseScores: [0, 0, 0],
   answers: {},
+  gameResults: [],
   currentPhase: 1,
 
   setExercises: (ids) => set({ userExerciseIds: ids }),
@@ -90,6 +110,11 @@ export const useGameStore = create<GameState>((set) => ({
       };
     }),
 
+  addGameResult: (result) =>
+    set((state) => ({
+      gameResults: [...state.gameResults, result],
+    })),
+
   setTimeRemaining: (time) => set({ timeRemaining: time }),
 
   startTimer: () => set({ isTimerRunning: true }),
@@ -108,5 +133,6 @@ export const useGameStore = create<GameState>((set) => ({
       totalScore: 0,
       exerciseScores: [0, 0, 0],
       answers: {},
+      gameResults: [],
     }),
 }));

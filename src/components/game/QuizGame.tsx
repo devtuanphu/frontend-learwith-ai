@@ -19,7 +19,6 @@ export function QuizGame({ onComplete }: { onComplete: () => void }) {
     selectOption,
     startWarmUp,
     submitAnswer,
-    totalQuestions,
   } = useQuiz();
 
   const { timeRemaining, setTimeRemaining, totalScore } = useGameStore();
@@ -29,6 +28,12 @@ export function QuizGame({ onComplete }: { onComplete: () => void }) {
   const [feedbackData, setFeedbackData] = useState<{
     question: typeof currentQuestion;
     selectedOptions: string[];
+    exerciseIndex: number;
+    questionIndex: number;
+    totalQuestionsInExercise: number;
+    scenario: string;
+    wasLastQuestion: boolean;
+    wasLastExercise: boolean;
   } | null>(null);
   const [lastResult, setLastResult] = useState<{ isCorrect: boolean; earnedPoints: number } | null>(null);
 
@@ -65,25 +70,38 @@ export function QuizGame({ onComplete }: { onComplete: () => void }) {
       setFeedbackData({
         question: answeredQuestion,
         selectedOptions: answeredSelectedOptions,
+        exerciseIndex: currentExerciseIndex,
+        questionIndex: currentQuestionIndex,
+        totalQuestionsInExercise: currentExercise?.exercise?.questions?.length || 1,
+        scenario: currentExercise?.exercise?.scenario || '',
+        wasLastQuestion: isLastQuestion,
+        wasLastExercise: isLastExercise,
       });
       setLastResult(result);
       setShowFeedback(true);
-
-      // Auto advance after 1.5s
-      setTimeout(() => {
-        setShowFeedback(false);
-        setLastResult(null);
-        setFeedbackData(null);
-        if (isLastQuestion && isLastExercise) {
-          onComplete();
-        }
-      }, 1500);
+      // Don't auto-advance - let user read feedback and click Next
     } catch (err) {
       console.error(err);
     } finally {
       setIsSubmitting(false);
     }
-  }, [currentQuestion, isSubmitting, questionStartTime, submitAnswer, isLastQuestion, isLastExercise, onComplete, answers]);
+  }, [currentQuestion, isSubmitting, questionStartTime, submitAnswer, answers, currentExerciseIndex, currentQuestionIndex, currentExercise?.exercise?.questions?.length, currentExercise?.exercise?.scenario, isLastQuestion, isLastExercise]);
+
+  // Handle moving to next question after reading feedback
+  const handleNextQuestion = useCallback(() => {
+    // Use stored values from feedbackData to avoid race condition
+    // where current state has already advanced to next question
+    const wasLastQuestion = feedbackData?.wasLastQuestion;
+    const wasLastExercise = feedbackData?.wasLastExercise;
+    
+    setShowFeedback(false);
+    setLastResult(null);
+    setFeedbackData(null);
+    
+    if (wasLastQuestion && wasLastExercise) {
+      onComplete();
+    }
+  }, [feedbackData?.wasLastQuestion, feedbackData?.wasLastExercise, onComplete]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -126,6 +144,10 @@ export function QuizGame({ onComplete }: { onComplete: () => void }) {
   // During feedback, show the answered question; otherwise show current question
   const displayQuestion = showFeedback && feedbackData?.question ? feedbackData.question : currentQuestion;
   const displaySelectedOptions = showFeedback && feedbackData ? feedbackData.selectedOptions : (answers[currentQuestion.id] || []);
+  const displayExerciseIndex = showFeedback && feedbackData ? feedbackData.exerciseIndex : currentExerciseIndex;
+  const displayQuestionIndex = showFeedback && feedbackData ? feedbackData.questionIndex : currentQuestionIndex;
+  const displayTotalQuestions = showFeedback && feedbackData ? feedbackData.totalQuestionsInExercise : (currentExercise?.exercise?.questions?.length || 1);
+  const displayScenario = showFeedback && feedbackData ? feedbackData.scenario : (currentExercise?.exercise?.scenario || '');
   const isMultiple = displayQuestion.type === 'MULTIPLE';
 
   return (
@@ -162,23 +184,23 @@ export function QuizGame({ onComplete }: { onComplete: () => void }) {
 
       {/* Exercise Type Badge */}
       <div className="mb-4">
-        <span className={`inline-block px-3 py-1 rounded-full text-white text-sm font-medium ${exerciseColors[currentExerciseIndex]}`}>
-          Bài {currentExerciseIndex + 1}: {exerciseTypes[currentExerciseIndex]}
+        <span className={`inline-block px-3 py-1 rounded-full text-white text-sm font-medium ${exerciseColors[displayExerciseIndex]}`}>
+          Bài {displayExerciseIndex + 1}: {exerciseTypes[displayExerciseIndex]}
         </span>
         <span className="ml-3 text-gray-500">
-          Câu {currentQuestionIndex + 1}/{totalQuestions}
+          Câu {displayQuestionIndex + 1}/{displayTotalQuestions}
         </span>
       </div>
 
       {/* Scenario */}
       <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg mb-6">
-        <p className="text-gray-700">{currentExercise.exercise.scenario}</p>
+        <p className="text-gray-700">{displayScenario}</p>
       </div>
 
       {/* Question */}
       <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
         <h2 className="text-lg font-semibold mb-4 text-gray-800">
-          {currentQuestion.content}
+          {displayQuestion.content}
         </h2>
         {isMultiple && (
           <p className="text-sm text-blue-600 mb-4">💡 Bạn có thể chọn nhiều đáp án</p>
@@ -225,26 +247,53 @@ export function QuizGame({ onComplete }: { onComplete: () => void }) {
         </div>
 
         {/* Feedback */}
-        {showFeedback && lastResult && (
-          <div className={`mt-4 p-4 rounded-lg ${lastResult.isCorrect ? 'bg-green-100' : 'bg-orange-100'}`}>
-            <div className="flex items-center gap-2">
-              {lastResult.isCorrect ? (
-                <>
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="font-medium text-green-700">
-                    Chính xác! +{lastResult.earnedPoints} điểm
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span className="font-medium text-orange-700">
-                    Chưa đúng, bạn nhận được {lastResult.earnedPoints} điểm. Cố gắng hơn nhé!
-                  </span>
-                </>
-              )}
+        {showFeedback && lastResult && (() => {
+          // Get feedback from ALL selected options
+          const selectedOptions = displayQuestion.options.filter(
+            opt => displaySelectedOptions.includes(opt.id)
+          );
+
+          return (
+            <div className={`mt-4 p-4 rounded-lg ${lastResult.isCorrect ? 'bg-green-100' : 'bg-orange-100'}`}>
+              <div className="flex items-center gap-2 mb-2">
+                {lastResult.isCorrect ? (
+                  <>
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <span className="font-medium text-green-700">
+                      Chính xác! +{lastResult.earnedPoints} điểm
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="font-medium text-orange-700">
+                      Chưa đúng, bạn nhận được {lastResult.earnedPoints} điểm
+                    </span>
+                  </>
+                )}
+              </div>
+              {/* Show feedback for ALL selected options */}
+              <div className="space-y-2 mt-2">
+                {selectedOptions.length > 0 ? (
+                  selectedOptions.map((opt) => (
+                    <div 
+                      key={opt.id}
+                      className={`text-sm p-2 rounded ${
+                        opt.isCorrect 
+                          ? 'bg-green-200 text-green-800' 
+                          : 'bg-red-200 text-red-800'
+                      }`}
+                    >
+                      <span className="font-medium">{String.fromCharCode(65 + displayQuestion.options.findIndex(o => o.id === opt.id))}:</span>{' '}
+                      {opt.feedback || `[Không có feedback - isCorrect: ${opt.isCorrect}]`}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500">Không tìm thấy option đã chọn</p>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* Submit Button */}
@@ -262,10 +311,21 @@ export function QuizGame({ onComplete }: { onComplete: () => void }) {
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
           ) : (
             <>
-              {isLastQuestion && isLastExercise ? 'Hoàn thành' : 'Tiếp theo'}
+              Gửi câu trả lời
               <ChevronRight className="w-5 h-5" />
             </>
           )}
+        </button>
+      )}
+
+      {/* Next Button - shown after feedback */}
+      {showFeedback && (
+        <button
+          onClick={handleNextQuestion}
+          className="w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 bg-linear-to-r from-green-500 to-teal-500 text-white hover:from-green-600 hover:to-teal-600 shadow-lg"
+        >
+          {isLastQuestion && isLastExercise ? 'Hoàn thành' : 'Câu tiếp theo'}
+          <ChevronRight className="w-5 h-5" />
         </button>
       )}
     </div>
