@@ -88,8 +88,24 @@ export const learningApi = {
     const response = await api.post('/learning/start-practice');
     return response.data;
   },
+  // NEW: Phase 2 - Start Basic Practice with Polya 4 steps
+  startBasicPractice2: async () => {
+    const response = await api.post('/learning/start-basic-practice2');
+    return response.data;
+  },
+  // NEW: Phase 2 - Polya Chat with step-gating
+  polyaChat: async (exerciseId: string, message: string) => {
+    const response = await api.post(`/learning/polya-chat/${exerciseId}`, { message });
+    return response.data;
+  },
+  // NEW: Phase 3 - Start Advanced Practice (PROBLEM_SOLVING)
   startAdvancedPractice: async () => {
-    const response = await api.post('/learning/start-advanced');
+    const response = await api.post('/learning/start-advanced-practice');
+    return response.data;
+  },
+  // NEW: Phase 4 - Start Application Practice (Polya 4 steps - tổng hợp thực tiễn)
+  startApplicationPractice: async () => {
+    const response = await api.post('/learning/start-application-practice');
     return response.data;
   },
   startApplication: async () => {

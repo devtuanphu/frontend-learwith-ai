@@ -202,9 +202,7 @@ export function QuizGame({ onComplete }: { onComplete: () => void }) {
         <h2 className="text-lg font-semibold mb-4 text-gray-800">
           {displayQuestion.content}
         </h2>
-        {isMultiple && (
-          <p className="text-sm text-blue-600 mb-4">💡 Bạn có thể chọn nhiều đáp án</p>
-        )}
+      
 
         {/* Options */}
         <div className="space-y-3">
@@ -215,7 +213,7 @@ export function QuizGame({ onComplete }: { onComplete: () => void }) {
             return (
               <button
                 key={option.id}
-                onClick={() => selectOption(currentQuestion.id, option.id, isMultiple)}
+                onClick={() => selectOption(displayQuestion.id, option.id, isMultiple)}
                 disabled={showFeedback}
                 className={`w-full p-4 rounded-xl border-2 text-left transition-all flex items-center gap-3 ${
                   showFeedback

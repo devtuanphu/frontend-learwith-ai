@@ -5,13 +5,13 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { QuizGame } from '@/components/game/QuizGame';
 import { GameResult } from '@/components/game/GameResult';
-import { ChatInterface } from '@/components/practice/ChatInterface';
+import { PolyaChatInterface } from '@/components/practice/PolyaChatInterface';
 import { useGameStore } from '@/store/game';
 import Link from 'next/link';
 
 // Updated phases to match the new flow:
-// game → game-result → practice (basic + advanced) → application → completed
-type Phase = 'game' | 'game-result' | 'practice' | 'application' | 'completed';
+// game → game-result → practice2 (Polya 4 steps) → advanced → application → completed
+type Phase = 'game' | 'game-result' | 'practice2' | 'advanced' | 'application' | 'completed';
 
 const PHASE_STORAGE_KEY = 'learn-game-phase';
 
@@ -31,7 +31,7 @@ export default function GamePage() {
     const savedPhase = localStorage.getItem(PHASE_STORAGE_KEY) as Phase | null;
     if (
       savedPhase &&
-      ['game', 'game-result', 'practice', 'application', 'completed'].includes(
+      ['game', 'game-result', 'practice2', 'advanced', 'application', 'completed'].includes(
         savedPhase,
       )
     ) {
@@ -55,13 +55,20 @@ export default function GamePage() {
   };
 
   const handleStartPractice = () => {
-    setPhase('practice');
+    setPhase('practice2');
   };
 
-  // Practice complete → move to Application (Vận dụng)
-  const handlePracticeComplete = () => {
+  // Practice2 complete → move to Advanced Practice
+  const handlePractice2Complete = () => {
+    setPhase('advanced');
+  };
+
+  // Advanced complete → move to Application
+  const handleAdvancedComplete = () => {
     setPhase('application');
   };
+
+  
 
   // Application complete → Final completed
   const handleApplicationComplete = () => {
@@ -74,6 +81,7 @@ export default function GamePage() {
     // Clear all session storage
     localStorage.removeItem('practice_session');
     localStorage.removeItem('advanced_practice_session');
+    localStorage.removeItem('polya_practice_session');
     localStorage.removeItem('application_session');
     setPhase('game');
   };
@@ -97,7 +105,7 @@ export default function GamePage() {
           <div className="ml-auto flex items-center gap-2">
             <div className="flex items-center gap-1">
               <div className={`w-3 h-3 rounded-full ${phase === 'game' || phase === 'game-result' ? 'bg-blue-500' : 'bg-green-500'}`} title="Khởi động" />
-              <div className={`w-3 h-3 rounded-full ${phase === 'practice' ? 'bg-blue-500' : phase === 'application' || phase === 'completed' ? 'bg-green-500' : 'bg-gray-300'}`} title="Luyện tập" />
+              <div className={`w-3 h-3 rounded-full ${phase === 'practice2' || phase === 'advanced' ? 'bg-blue-500' : phase === 'application' || phase === 'completed' ? 'bg-green-500' : 'bg-gray-300'}`} title="Luyện tập" />
               <div className={`w-3 h-3 rounded-full ${phase === 'application' ? 'bg-blue-500' : phase === 'completed' ? 'bg-green-500' : 'bg-gray-300'}`} title="Vận dụng" />
             </div>
           </div>
@@ -118,17 +126,24 @@ export default function GamePage() {
         </div>
       )}
 
-      {/* Phase: Practice (LUYỆN TẬP - SỬA LỖI) contains both Basic + Advanced */}
-      {phase === 'practice' && (
+      {/* Phase: Practice2 - Luyện tập cơ bản với Polya 4 bước */}
+      {phase === 'practice2' && (
         <div className="py-6 px-4">
-          <ChatInterface phase={2} onComplete={handlePracticeComplete} />
+          <PolyaChatInterface practiceType="basic" onComplete={handlePractice2Complete} />
         </div>
       )}
 
-      {/* Phase: Application (VẬN DỤNG) */}
+      {/* Phase: Advanced Practice - Luyện tập nâng cao với Polya 4 bước */}
+      {phase === 'advanced' && (
+        <div className="py-6 px-4">
+          <PolyaChatInterface practiceType="advanced" onComplete={handleAdvancedComplete} />
+        </div>
+      )}
+
+      {/* Phase: Application (VẬN DỤNG) - Polya 4 bước với bài tổng hợp thực tiễn */}
       {phase === 'application' && (
         <div className="py-6 px-4">
-          <ChatInterface phase={3} onComplete={handleApplicationComplete} />
+          <PolyaChatInterface practiceType="application" onComplete={handleApplicationComplete} />
         </div>
       )}
 
