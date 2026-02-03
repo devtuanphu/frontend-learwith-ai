@@ -102,7 +102,7 @@ export function GameResult({ onStartPractice }: { onStartPractice: () => void })
             <Sparkles className="w-6 h-6 text-purple-600" />
           </div>
           <div>
-            <h2 className="font-bold text-gray-800">Trợ lí học tập AI nhận xét</h2>
+            <h2 className="font-bold text-gray-800">Trợ lý học tập ảo nhận xét</h2>
             <p className="text-sm text-gray-500">Phân tích chi tiết kết quả của bạn</p>
           </div>
         </div>
@@ -110,7 +110,7 @@ export function GameResult({ onStartPractice }: { onStartPractice: () => void })
         {isLoadingFeedback ? (
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500" />
-            <span className="ml-3 text-gray-600">AI đang phân tích kết quả...</span>
+            <span className="ml-3 text-gray-600">Trợ lý học tập ảo đang phân tích kết quả...</span>
           </div>
         ) : aiFeedback && (
           <>

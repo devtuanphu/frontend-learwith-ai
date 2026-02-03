@@ -59,15 +59,15 @@ export default function LoginPage() {
             <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
               <BookOpen className="w-7 h-7" />
             </div>
-            <h1 className="text-2xl font-bold">Học Toán Cùng AI</h1>
+            <h1 className="text-2xl font-bold">Học Toán Thông Minh</h1>
           </div>
         </div>
         <div className="max-w-md">
           <h2 className="text-4xl font-bold mb-4">
-            Học toán thông minh với Trợ lí AI
+            Học toán thông minh với Trợ lý học tập ảo
           </h2>
           <p className="text-blue-100 text-lg">
-            Hệ thống học tập cá nhân hóa, giúp học sinh lớp 5 nắm vững phép nhân số thập phân thông qua trò chơi tương tác và hướng dẫn từ AI.
+            Hệ thống học tập cá nhân hóa, giúp học sinh lớp 5 nắm vững phép nhân số thập phân thông qua trò chơi tương tác và hướng dẫn từ Trợ lý học tập ảo.
           </p>
         </div>
         <div className="flex gap-4">
@@ -76,8 +76,8 @@ export default function LoginPage() {
             <div className="text-sm text-blue-100">Lộ trình học</div>
           </div>
           <div className="p-4 bg-white/10 rounded-xl backdrop-blur-sm">
-            <div className="text-3xl font-bold">AI</div>
-            <div className="text-sm text-blue-100">Trợ lí thông minh</div>
+            <div className="text-3xl font-bold">🤖</div>
+            <div className="text-sm text-blue-100">Trợ lý học tập ảo</div>
           </div>
           <div className="p-4 bg-white/10 rounded-xl backdrop-blur-sm">
             <div className="text-3xl font-bold">🎮</div>
@@ -93,7 +93,7 @@ export default function LoginPage() {
             <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-blue-500 to-purple-500 flex items-center justify-center mx-auto mb-4">
               <BookOpen className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-800">Học Toán Cùng AI</h1>
+            <h1 className="text-2xl font-bold text-gray-800">Học Toán Thông Minh</h1>
           </div>
 
           <div className="bg-white rounded-3xl shadow-xl p-8">

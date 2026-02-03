@@ -46,7 +46,7 @@ export default function DashboardPage() {
               <BookOpen className="w-6 h-6 text-white" />
             </div>
             <h1 className="text-xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Học Toán Cùng AI
+              Học Toán Thông Minh
             </h1>
           </div>
           <div className="flex items-center gap-4">
@@ -72,7 +72,7 @@ export default function DashboardPage() {
             Xin chào, {user?.name}! 👋
           </h2>
           <p className="text-gray-600">
-            Hãy bắt đầu hành trình học toán thú vị cùng Trợ lí AI nhé!
+            Hãy bắt đầu hành trình học toán thú vị cùng Trợ lý học tập ảo nhé!
           </p>
         </div>
 

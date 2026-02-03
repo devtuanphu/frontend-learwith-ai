@@ -290,7 +290,7 @@ export function ChatInterface({ phase, onComplete }: ChatInterfaceProps) {
               <h2 className="font-bold text-lg">
                 {getTitle()}
               </h2>
-              <p className="text-sm text-white/80">Trò chuyện với Trợ lí AI</p>
+              <p className="text-sm text-white/80">Trò chuyện với Trợ lý học tập ảo</p>
             </div>
             <div className="flex items-center gap-2">
               {phase === 2 && (
@@ -301,7 +301,7 @@ export function ChatInterface({ phase, onComplete }: ChatInterfaceProps) {
               )}
               <div className="flex items-center gap-2 bg-white/20 px-3 py-1.5 rounded-full">
                 <Sparkles className="w-4 h-4" />
-                <span className="text-sm font-medium">AI Hỗ Trợ</span>
+                <span className="text-sm font-medium">Trợ lý học tập ảo</span>
               </div>
             </div>
           </div>

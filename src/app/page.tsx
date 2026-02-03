@@ -12,7 +12,7 @@ export default function Home() {
               <BookOpen className="w-6 h-6 text-white" />
             </div>
             <h1 className="text-xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Học Toán Cùng AI
+              Học Toán Thông Minh
             </h1>
           </div>
           <div className="flex gap-4">
@@ -35,11 +35,11 @@ export default function Home() {
           <h2 className="text-5xl font-bold text-gray-800 mb-6">
             Học toán thông minh với{' '}
             <span className="bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Trợ lí AI
+              Trợ lý học tập ảo
             </span>
           </h2>
           <p className="text-xl text-gray-600 mb-8">
-            Hệ thống học tập cá nhân hóa dành cho học sinh lớp 5, giúp nắm vững phép nhân số thập phân thông qua trò chơi tương tác và hướng dẫn từ AI.
+            Hệ thống học tập cá nhân hóa dành cho học sinh lớp 5, giúp nắm vững phép nhân số thập phân thông qua trò chơi tương tác và hướng dẫn từ Trợ lý học tập ảo.
           </p>
           <Link
             href="/register"
@@ -66,9 +66,9 @@ export default function Home() {
             <div className="w-14 h-14 rounded-xl bg-purple-100 flex items-center justify-center mb-4">
               <Bot className="w-7 h-7 text-purple-600" />
             </div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">AI Cá nhân hóa</h3>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">Trợ lý học tập ảo</h3>
             <p className="text-gray-600">
-              Trợ lí AI phân tích lỗi sai và tạo bài tập riêng để giúp bạn cải thiện điểm yếu.
+              Trợ lý học tập ảo phân tích lỗi sai và tạo bài tập riêng để giúp bạn cải thiện điểm yếu.
             </p>
           </div>
 
@@ -97,7 +97,7 @@ export default function Home() {
                 <h4 className="font-bold text-green-800">Khởi động</h4>
               </div>
               <p className="text-sm text-green-700">
-                Trò chơi trắc nghiệm 3 bài (7 phút). AI phân tích lỗi sai.
+                Trò chơi trắc nghiệm 3 bài (7 phút). Trợ lý phân tích lỗi sai.
               </p>
             </div>
             <div className="hidden md:block text-3xl text-gray-300">→</div>
@@ -109,7 +109,7 @@ export default function Home() {
                 <h4 className="font-bold text-purple-800">Luyện tập</h4>
               </div>
               <p className="text-sm text-purple-700">
-                Chat với Trợ lí AI. Bài tập tập trung vào lỗi sai của bạn.
+                Chat với Trợ lý học tập ảo. Bài tập tập trung vào lỗi sai của bạn.
               </p>
             </div>
             <div className="hidden md:block text-3xl text-gray-300">→</div>
@@ -131,7 +131,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="mt-12 py-8 border-t border-gray-200 bg-white/50">
         <div className="max-w-7xl mx-auto px-4 text-center text-gray-500">
-          <p>Học Toán Cùng AI - Dự án học tập thông minh cho học sinh lớp 5</p>
+          <p>Học Toán Thông Minh - Dự án học tập thông minh cho học sinh lớp 5</p>
         </div>
       </footer>
     </div>

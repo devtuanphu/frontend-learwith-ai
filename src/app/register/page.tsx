@@ -72,7 +72,7 @@ export default function RegisterPage() {
             <BookOpen className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-gray-800">Tạo tài khoản mới</h1>
-          <p className="text-gray-500 mt-1">Bắt đầu hành trình học toán với AI</p>
+          <p className="text-gray-500 mt-1">Bắt đầu hành trình học toán với Trợ lý học tập ảo</p>
         </div>
 
         <div className="bg-white rounded-3xl shadow-xl p-8">
