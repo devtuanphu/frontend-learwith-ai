@@ -7,6 +7,7 @@ interface User {
   id: string;
   email: string;
   name: string;
+  role: 'STUDENT' | 'TEACHER';
 }
 
 interface AuthState {
@@ -14,8 +15,15 @@ interface AuthState {
   token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<'STUDENT' | 'TEACHER'>;
+  register: (data: {
+    email: string;
+    password: string;
+    name: string;
+    role?: 'STUDENT' | 'TEACHER';
+    classCode?: string;
+    className?: string;
+  }) => Promise<'STUDENT' | 'TEACHER'>;
   logout: () => void;
   loadUser: () => Promise<void>;
 }
@@ -34,16 +42,18 @@ export const useAuthStore = create<AuthState>((set) => ({
       token: response.accessToken,
       isAuthenticated: true,
     });
+    return response.user.role;
   },
 
-  register: async (email: string, password: string, name: string) => {
-    const response = await authApi.register({ email, password, name });
+  register: async (data) => {
+    const response = await authApi.register(data);
     localStorage.setItem('token', response.accessToken);
     set({
       user: response.user,
       token: response.accessToken,
       isAuthenticated: true,
     });
+    return response.user.role;
   },
 
   logout: () => {
@@ -71,3 +81,4 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 }));
+

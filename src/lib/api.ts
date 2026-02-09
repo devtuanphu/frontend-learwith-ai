@@ -22,7 +22,14 @@ api.interceptors.request.use((config) => {
 
 // Auth API
 export const authApi = {
-  register: async (data: { email: string; password: string; name: string }) => {
+  register: async (data: {
+    email: string;
+    password: string;
+    name: string;
+    role?: 'STUDENT' | 'TEACHER';
+    classCode?: string;
+    className?: string;
+  }) => {
     const response = await api.post('/auth/register', data);
     return response.data;
   },
@@ -200,3 +207,26 @@ export const leaderboardApi = {
 
 export default api;
 
+// Teacher API
+export const teacherApi = {
+  getClassroom: async () => {
+    const response = await api.get('/teacher/classroom');
+    return response.data;
+  },
+  getStudents: async () => {
+    const response = await api.get('/teacher/students');
+    return response.data;
+  },
+  getStudentDetail: async (studentId: string) => {
+    const response = await api.get(`/teacher/students/${studentId}`);
+    return response.data;
+  },
+  getStatistics: async () => {
+    const response = await api.get('/teacher/statistics');
+    return response.data;
+  },
+  removeStudent: async (studentId: string) => {
+    const response = await api.delete(`/teacher/students/${studentId}`);
+    return response.data;
+  },
+};

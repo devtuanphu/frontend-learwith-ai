@@ -15,6 +15,7 @@ export interface GameAnswerResult {
   earnedPoints: number;
   errorType?: string;
   errorDescription?: string;
+  feedback?: string;
 }
 
 interface GameState {

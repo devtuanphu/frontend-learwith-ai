@@ -122,9 +122,6 @@ export function GameResult({ onStartPractice }: { onStartPractice: () => void })
             {/* Per-Question Feedback */}
             <div className="space-y-3">
               {gameResults.map((result, index) => {
-                const feedback = aiFeedback.questionFeedbacks.find(
-                  f => f.exerciseIndex === result.exerciseIndex && f.questionIndex === result.questionIndex
-                );
                 const isExpanded = expandedQuestion === index;
 
                 return (
@@ -175,7 +172,7 @@ export function GameResult({ onStartPractice }: { onStartPractice: () => void })
                           </p>
                         )}
                         <div className={`mt-3 p-3 rounded-lg ${result.isCorrect ? 'bg-green-50' : 'bg-orange-50'}`}>
-                          <p className="text-sm">{feedback?.feedback}</p>
+                          <p className="text-sm">{result.feedback || (result.isCorrect ? 'Chính xác! Bạn làm rất tốt câu này.' : 'Hãy xem lại cách làm nhé!')}</p>
                         </div>
                       </div>
                     )}

@@ -10,7 +10,7 @@ import type { RobotEmotion } from '@/components/3d/AIRobot';
 const AIRobot = dynamic(() => import('@/components/3d/AIRobot'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full flex items-center justify-center bg-gradient-to-b from-[#1a1a2e] to-[#16213e] rounded-2xl">
+    <div className="w-full h-full flex items-center justify-center bg-linear-to-b from-[#1a1a2e] to-[#16213e] rounded-2xl">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400" />
     </div>
   ),
@@ -21,17 +21,11 @@ interface PolyaChatInterfaceProps {
   onComplete: () => void;
 }
 
-const POLYA_STEP_LABELS = [
-  { step: 1, label: 'Hiểu bài toán', shortLabel: 'Hiểu đề' },
-  { step: 2, label: 'Lập kế hoạch', shortLabel: 'Kế hoạch' },
-  { step: 3, label: 'Thực hiện', shortLabel: 'Thực hiện' },
-  { step: 4, label: 'Kiểm tra', shortLabel: 'Kiểm tra' },
-];
+
 
 export function PolyaChatInterface({ practiceType = 'basic', onComplete }: PolyaChatInterfaceProps) {
   const {
     problem,
-    currentStep,
     messages,
     isLoading,
     exerciseCompleted,
@@ -113,43 +107,13 @@ export function PolyaChatInterface({ practiceType = 'basic', onComplete }: Polya
           </div>
         </div>
 
-        {/* Polya Steps Progress */}
-        <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100">
-          <h3 className="font-bold text-gray-700 mb-3 text-sm">📚 4 Bước Polya</h3>
-          <div className="space-y-2">
-            {POLYA_STEP_LABELS.map(({ step, label }) => (
-              <div
-                key={step}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm ${
-                  step === currentStep
-                    ? 'bg-purple-100 border-2 border-purple-400'
-                    : step < currentStep
-                    ? 'bg-green-50 text-green-700'
-                    : 'bg-gray-50 text-gray-400'
-                }`}
-              >
-                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                  step < currentStep 
-                    ? 'bg-green-500 text-white' 
-                    : step === currentStep 
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-gray-200'
-                }`}>
-                  {step < currentStep ? '✓' : step}
-                </span>
-                <span className={`font-medium ${step === currentStep ? 'text-purple-700' : ''}`}>
-                  {label}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+
       </div>
 
       {/* Right Panel - Chat */}
       <div className="flex-1 flex flex-col bg-white rounded-2xl overflow-hidden shadow-xl border border-gray-100">
         {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 px-5 py-4">
+        <div className="bg-linear-to-r from-indigo-600 via-purple-600 to-pink-500 px-5 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
@@ -163,18 +127,18 @@ export function PolyaChatInterface({ practiceType = 'basic', onComplete }: Polya
                       ? 'Luyện tập nâng cao' 
                       : 'Luyện tập cơ bản'}
                 </h1>
-                <p className="text-white/70 text-xs">Phương pháp Polya 4 bước</p>
+                <p className="text-white/70 text-xs">Học cùng Trợ lý học tập ảo</p>
               </div>
             </div>
             <div className="flex items-center gap-2 bg-white/20 px-3 py-1.5 rounded-full">
-              <span className="text-white text-sm font-medium">Bước {currentStep}/4</span>
+              <span className="text-white text-sm font-medium">🤖 Trợ lý AI</span>
             </div>
           </div>
         </div>
         
         {/* PINNED Problem Card */}
         {problem && (
-          <div className="shrink-0 border-b border-slate-200 bg-gradient-to-r from-amber-50 to-orange-50">
+          <div className="shrink-0 border-b border-slate-200 bg-linear-to-r from-amber-50 to-orange-50">
             <div className="px-5 py-4">
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center shrink-0">
@@ -198,15 +162,11 @@ export function PolyaChatInterface({ practiceType = 'basic', onComplete }: Polya
                 className={`flex ${message.role === 'USER' ? 'justify-end' : 'justify-start'}`}
               >
                 <div className="max-w-[85%]">
-                  {/* Step indicator for AI */}
-                  {message.role === 'AI' && message.step && (
+                  {/* Progress indicator for AI */}
+                  {message.role === 'AI' && message.passed && (
                     <div className="flex items-center gap-1.5 mb-1.5">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        message.passed 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-purple-100 text-purple-700'
-                      }`}>
-                        {message.passed ? '✓ ' : ''}{POLYA_STEP_LABELS.find(s => s.step === message.step)?.label}
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                        ✓ Chính xác!
                       </span>
                     </div>
                   )}
@@ -216,7 +176,7 @@ export function PolyaChatInterface({ practiceType = 'basic', onComplete }: Polya
                       className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
                         message.role === 'USER'
                           ? 'bg-blue-500 text-white'
-                          : 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
+                          : 'bg-linear-to-br from-purple-500 to-pink-500 text-white'
                       }`}
                     >
                       {message.role === 'USER' ? (
@@ -260,10 +220,10 @@ export function PolyaChatInterface({ practiceType = 'basic', onComplete }: Polya
 
         {/* Complete Button */}
         {exerciseCompleted && (
-          <div className="shrink-0 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-t border-green-200">
+          <div className="shrink-0 p-4 bg-linear-to-r from-green-50 to-emerald-50 border-t border-green-200">
             <button
               onClick={handleComplete}
-              className="w-full py-3.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-bold hover:from-green-600 hover:to-emerald-600 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+              className="w-full py-3.5 bg-linear-to-r from-green-500 to-emerald-500 text-white rounded-xl font-bold hover:from-green-600 hover:to-emerald-600 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
             >
               <span>
                 {practiceType === 'application' 
@@ -303,7 +263,7 @@ export function PolyaChatInterface({ practiceType = 'basic', onComplete }: Polya
                 disabled={!input.trim() || isLoading}
                 className={`px-4 rounded-xl transition-all flex items-center justify-center ${
                   input.trim() && !isLoading
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 shadow-md hover:shadow-lg'
+                    ? 'bg-linear-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 shadow-md hover:shadow-lg'
                     : 'bg-slate-100 text-slate-300 cursor-not-allowed'
                 }`}
               >

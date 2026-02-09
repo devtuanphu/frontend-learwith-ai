@@ -32,8 +32,8 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      await login(email, password);
-      router.push('/dashboard');
+      const role = await login(email, password);
+      router.push(role === 'TEACHER' ? '/teacher' : '/dashboard');
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       setError(error.response?.data?.message || 'Đăng nhập thất bại. Vui lòng thử lại.');

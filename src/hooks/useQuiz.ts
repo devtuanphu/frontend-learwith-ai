@@ -136,6 +136,7 @@ export function useQuiz() {
         earnedPoints: response.earnedPoints,
         errorType: wrongSelectedOption?.errorType,
         errorDescription: wrongSelectedOption?.errorDescription,
+        feedback: wrongSelectedOption?.feedback || correctOptions[0]?.feedback,
       });
       
       if (isLastQuestion) {

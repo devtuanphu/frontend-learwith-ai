@@ -3,16 +3,19 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
-import { BookOpen, Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { BookOpen, Eye, EyeOff, Mail, Lock, User, GraduationCap, School } from 'lucide-react';
 import Link from 'next/link';
 
 export default function RegisterPage() {
   const router = useRouter();
   const { register, isAuthenticated, isLoading: authLoading, loadUser } = useAuthStore();
+  const [role, setRole] = useState<'STUDENT' | 'TEACHER'>('STUDENT');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [classCode, setClassCode] = useState('');
+  const [className, setClassName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -43,11 +46,28 @@ export default function RegisterPage() {
       return;
     }
 
+    if (role === 'STUDENT' && !classCode.trim()) {
+      setError('Vui lòng nhập mã lớp');
+      return;
+    }
+
+    if (role === 'TEACHER' && !className.trim()) {
+      setError('Vui lòng nhập tên lớp');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      await register(email, password, name);
-      router.push('/dashboard');
+      const userRole = await register({
+        email,
+        password,
+        name,
+        role,
+        classCode: role === 'STUDENT' ? classCode.toUpperCase() : undefined,
+        className: role === 'TEACHER' ? className : undefined,
+      });
+      router.push(userRole === 'TEACHER' ? '/teacher' : '/dashboard');
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       setError(error.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.');
@@ -76,6 +96,34 @@ export default function RegisterPage() {
         </div>
 
         <div className="bg-white rounded-3xl shadow-xl p-8">
+          {/* Role Toggle */}
+          <div className="flex gap-2 mb-6">
+            <button
+              type="button"
+              onClick={() => setRole('STUDENT')}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-all ${
+                role === 'STUDENT'
+                  ? 'bg-blue-500 text-white shadow-lg shadow-blue-200'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <GraduationCap className="w-5 h-5" />
+              Học sinh
+            </button>
+            <button
+              type="button"
+              onClick={() => setRole('TEACHER')}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-all ${
+                role === 'TEACHER'
+                  ? 'bg-purple-500 text-white shadow-lg shadow-purple-200'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <School className="w-5 h-5" />
+              Giáo viên
+            </button>
+          </div>
+
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm">
               {error}
@@ -95,7 +143,7 @@ export default function RegisterPage() {
                   onChange={(e) => setName(e.target.value)}
                   required
                   className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Nguyễn Văn A"
+                  placeholder={role === 'TEACHER' ? 'Nguyễn Thị B' : 'Nguyễn Văn A'}
                 />
               </div>
             </div>
@@ -116,6 +164,46 @@ export default function RegisterPage() {
                 />
               </div>
             </div>
+
+            {/* Role-specific fields */}
+            {role === 'STUDENT' ? (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Mã lớp
+                </label>
+                <div className="relative">
+                  <School className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="text"
+                    value={classCode}
+                    onChange={(e) => setClassCode(e.target.value.toUpperCase())}
+                    required
+                    maxLength={6}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase tracking-widest font-mono text-lg"
+                    placeholder="ABC123"
+                  />
+                </div>
+                <p className="text-xs text-gray-400 mt-1">Nhập mã lớp do giáo viên cung cấp</p>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tên lớp
+                </label>
+                <div className="relative">
+                  <School className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="text"
+                    value={className}
+                    onChange={(e) => setClassName(e.target.value)}
+                    required
+                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="VD: 5A1"
+                  />
+                </div>
+                <p className="text-xs text-gray-400 mt-1">Mã lớp sẽ được tạo tự động sau khi đăng ký</p>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -161,12 +249,16 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 bg-linear-to-r from-blue-500 to-purple-500 text-white rounded-xl font-medium hover:from-blue-600 hover:to-purple-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className={`w-full py-3 text-white rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
+                role === 'TEACHER'
+                  ? 'bg-linear-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600'
+                  : 'bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600'
+              }`}
             >
               {isLoading ? (
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
               ) : (
-                'Đăng ký'
+                `Đăng ký ${role === 'TEACHER' ? 'Giáo viên' : 'Học sinh'}`
               )}
             </button>
           </form>
