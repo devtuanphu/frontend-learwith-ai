@@ -57,8 +57,8 @@ export const exercisesApi = {
 
 // Progress API
 export const progressApi = {
-  startWarmUp: async () => {
-    const response = await api.post('/progress/start-warmup');
+  startWarmUp: async (topicId?: string) => {
+    const response = await api.post('/progress/start-warmup', { topicId });
     return response.data;
   },
   submitAnswer: async (data: {

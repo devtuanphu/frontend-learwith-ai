@@ -124,23 +124,36 @@ export default function DashboardPage() {
         {/* Topic Selection Preview */}
         <div className="mt-12 max-w-4xl mx-auto">
           <h3 className="text-xl font-bold text-gray-800 mb-4">📚 Chủ đề hiện có</h3>
-          <div className="bg-white rounded-2xl p-6 shadow-lg">
-            <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-xl">
-              <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
-                5
+          <div className="bg-white rounded-2xl p-6 shadow-lg space-y-3">
+            {[
+              { grade: 5, name: 'Phép nhân số thập phân', sub: 'Các phép tính với số thập phân' },
+              { grade: 5, name: 'Tìm hai số khi biết tổng và tỉ số', sub: 'Tỉ số. Tỉ số phần trăm' },
+              { grade: 5, name: 'Tìm tỉ số phần trăm của hai số', sub: 'Tỉ số. Tỉ số phần trăm' },
+              { grade: 5, name: 'Mét khối', sub: 'Thể tích. Đơn vị đo thể tích' },
+              { grade: 5, name: 'Diện tích xung quanh và toàn phần hình lập phương', sub: 'Diện tích và thể tích hình khối' },
+              { grade: 5, name: 'Thể tích của hình hộp chữ nhật', sub: 'Diện tích và thể tích hình khối' },
+              { grade: 5, name: 'Cộng, trừ số đo thời gian', sub: 'Số đo thời gian. Vận tốc' },
+              { grade: 5, name: 'Nhân, chia số đo thời gian', sub: 'Số đo thời gian. Vận tốc' },
+              { grade: 5, name: 'Vận tốc của một chuyển động đều', sub: 'Số đo thời gian. Vận tốc' },
+            ].map((topic) => (
+              <div key={topic.name} className="flex items-center gap-4 p-4 bg-blue-50 rounded-xl">
+                <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold shrink-0">
+                  {topic.grade}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800">{topic.name}</h4>
+                  <p className="text-sm text-gray-500">Lớp 5 - {topic.sub}</p>
+                </div>
+                <div className="ml-auto">
+                  <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                    Đang mở
+                  </span>
+                </div>
               </div>
-              <div>
-                <h4 className="font-semibold text-gray-800">Phép nhân số thập phân</h4>
-                <p className="text-sm text-gray-500">Lớp 5 - Số và Phép tính</p>
-              </div>
-              <div className="ml-auto">
-                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                  Đang mở
-                </span>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
+
       </main>
     </div>
   );

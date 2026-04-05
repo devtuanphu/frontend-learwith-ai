@@ -83,7 +83,11 @@ export function useQuiz() {
     setIsLoading(true);
     setError(null);
     try {
-      const exercises = await progressApi.startWarmUp();
+      const topicId =
+        typeof window !== 'undefined'
+          ? (localStorage.getItem('selectedTopicId') ?? undefined)
+          : undefined;
+      const exercises = await progressApi.startWarmUp(topicId);
       // Sort questions by orderIndex to ensure correct display order
       const sortedExercises = exercises.map((e: UserExercise) => ({
         ...e,
